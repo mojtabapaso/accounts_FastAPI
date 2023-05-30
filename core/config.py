@@ -15,7 +15,6 @@ app.include_router(router.router, tags=["accounts_client"])
 #     response.headers['X-Process-Time'] = str(process_time)
 #     return response
 
-
 @app.on_event('startup')
 def startup_event():
     with open('server_time_log.log', 'a') as log:
