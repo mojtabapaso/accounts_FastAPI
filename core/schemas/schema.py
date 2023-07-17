@@ -7,7 +7,7 @@ class OtpCode(BaseModel):
 
 class UserBase(BaseModel):
     phone_number: str = Field(examples="09123456789")
-    id : str = None
+
 
 
 class UserCreate(BaseModel):

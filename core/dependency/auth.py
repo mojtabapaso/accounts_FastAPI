@@ -1,15 +1,13 @@
-from ..schemas.schema import UserBase
-from fastapi import HTTPException, status
+from ..schemas.schema import UserBase, LoginPassword
 import re
 from models.models import OtpCode
 from models.dependencies import get_db
-from models.dependencies import get_db, SessionLocal
-from fastapi import Depends
-from sqlalchemy.orm import Session
 from models.models import User
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+
+from ..security.hasher import verify_password
 
 
 def validate_phone_number(user: UserBase):
@@ -37,7 +35,13 @@ def falsifier_activate_otp_code(user: UserBase, db: Session = Depends(get_db)):
         db_otp.update({OtpCode.expired: False})
         db.commit()
 
-# def validate_otp(data: UserBase, db: Session = Depends(get_db)):
-#     database = db.query(User).filter(User.phone_number == data.phone_number).first()
-#     # if database:
-#     #     return {f"__ {database} ___ "}
+
+def login_password(data: LoginPassword, db: Session = Depends(get_db)):
+    password = data.password
+    phone_number = data.phone_number
+    user = db.query(User).filter(User.phone_number == phone_number).first()
+
+    verifyPassword = verify_password(password, user.password)
+    if verifyPassword is False:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="password invalid")
+    return phone_number
