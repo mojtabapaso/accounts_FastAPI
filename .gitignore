@@ -3,5 +3,5 @@ server_time_log.log
 __pycache__/
 sql_app.db
 .idea/
-*.db/
+*.db
 git reset .idea/

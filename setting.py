@@ -1,0 +1,17 @@
+
+# DATABASE_URL = 'postgresql://fast:fast@localhost:5432/testapi'
+
+DATABASE_URL = 'sqlite:///./SQLite.db'
+
+AUTH_SECRET_KEY = "Auth_Secrect"
+AUTH_ALGORITHM = "HS256"
+AUTH_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+AUTH_REFRESH_TOKEN_EXPIRE_DAYS = 30
+KAVENEGAR_API = ""
+PORT = 8000
+HOST = '127.0.0.1'
+PRODUCTION = False
+if PRODUCTION:
+    UVICORN_RELOAD = False
+else:
+    UVICORN_RELOAD = True
