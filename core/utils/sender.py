@@ -1,6 +1,7 @@
 from kavenegar import KavenegarAPI, APIException, HTTPException
+from setting import KAVENEGAR_API
 
-api = KavenegarAPI('YOUR_API_KEY')
+api = KavenegarAPI(KAVENEGAR_API)
 
 
 def send_otp_code(otp_code, phone_number):

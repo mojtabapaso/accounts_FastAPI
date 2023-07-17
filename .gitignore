@@ -4,4 +4,3 @@ __pycache__/
 sql_app.db
 .idea/
 *.db
-git reset .idea/

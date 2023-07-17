@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from random import randint
-from fastapi import status, APIRouter, HTTPException, Depends
+from fastapi import status, APIRouter, HTTPException, Depends, Body
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import *
 from pydantic import BaseModel
@@ -11,17 +11,19 @@ from core.security.validate_email import is_valid_email_regex
 from core.utils.sender import send_otp_code
 from models.dependencies import get_db
 from models.models import User, OtpCode, Profile
+from fastapi import Depends
+from setting import *
+from core.utils.random import random_otp_code
+from core.dependency.auth import *
 
 router = APIRouter()
 
 
 class Settings(BaseModel):
-    authjwt_secret_key: str = "AAAAAAAAAAAAAAAAAAAAAAAAA"
-    # Secret Key Json Web Token
-    # :)
+    authjwt_secret_key: str = AUTH_SECRET_KEY
     authjwt_token_location = ("headers",)
     authjwt_cookie_secure = False
-    authjwt_algorithm = "HS256"
+    authjwt_algorithm = AUTH_ALGORITHM
 
 
 @AuthJWT.load_config
@@ -31,26 +33,18 @@ def get_config():
 
 # ------------------------------------------------------------------------------------
 
-@router.post('/register/phone/', status_code=status.HTTP_200_OK)
-def validate_phone(user: schema.UserBase, db: Session = Depends(get_db)):
-    last_otp_time = db.query(OtpCode).filter(OtpCode.phone_number == user.phone_number).order_by(
-        OtpCode.id.desc()).first()
-    if last_otp_time and (last_otp_time.time + timedelta(minutes=2)) > datetime.now():
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                            detail='Please wait for 2 minutes before requesting a new OTP')
-    db_user = db.query(User).filter(User.phone_number == user.phone_number).first()
-    if db_user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Phone number already exists')
-    db_otp = db.query(OtpCode).filter(OtpCode.phone_number == user.phone_number)
-    if db_otp.first():
-        db_otp.update({OtpCode.expired: False})
-        db.commit()
-    otpCode = OtpCode(code=randint(10000, 99999), phone_number=user.phone_number)
+
+@router.post('/register/phone/',
+             dependencies=[Depends(validate_phone_number), Depends(validate_otp_request_rate), Depends(validate_user),
+                           Depends(falsifier_activate_otp_code)],
+             status_code=status.HTTP_200_OK)
+def register_user_with_phone_number(user: schema.UserBase, db: Session = Depends(get_db), ):
+    otpCode = OtpCode(code=random_otp_code(), phone_number=user.phone_number)
     db.add(otpCode)
     db.commit()
     db.refresh(otpCode)
-    send_otp_code(otpCode, user.phone_number)
-    return {'detail': 'We send opt code for your phone number'}
+    # send_otp_code(otpCode, user.phone_number)
+    return 'We send opt code for your phone number'
 
 
 @router.post('/register/code/', status_code=status.HTTP_201_CREATED)
@@ -192,3 +186,8 @@ def show_profile(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
     except JWTDecodeError or MissingTokenError or AuthJWTException:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                              detail='Json Web Token invalid')
+
+
+@router.get("/a/")
+def tesff():
+    return "ok"

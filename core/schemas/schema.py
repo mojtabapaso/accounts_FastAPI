@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class OtpCode(BaseModel):
@@ -6,7 +6,8 @@ class OtpCode(BaseModel):
 
 
 class UserBase(BaseModel):
-    phone_number: str
+    phone_number: str = Field(examples="09123456789")
+    id : str = None
 
 
 class UserCreate(BaseModel):
@@ -47,5 +48,6 @@ class Profile(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
 
-class LoginPassword(Password,UserBase):
+
+class LoginPassword(Password, UserBase):
     pass
