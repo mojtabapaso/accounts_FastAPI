@@ -11,13 +11,24 @@ from security.validate_email import is_valid_email_regex
 router = APIRouter()
 
 
-@router.get("/show/profile/", dependencies=[Depends(profile_is_not_none)], status_code=status.HTTP_200_OK)
-def show_profile(auth=Depends(login_required), profile=Depends(show_profile)):
+@router.get("/show/profile/", dependencies=[Depends(profile_is_not_none)],
+            status_code=status.HTTP_200_OK)
+def show_profile(auth=Depends(login_required), profile=Depends(show_profile)) -> schema.Profile:
+    """
+    validate user is authenticated \n
+    show profile
+
+    """
     return profile
+
 
 @router.put('/update/profile/', status_code=status.HTTP_200_OK)
 def update_profile(data: schema.Profile | None = None, phone: str = Depends(login_required),
-                   db: Session = Depends(get_db)):
+                   db: Session = Depends(get_db)) -> schema.Profile:
+    """
+    validate user is authenticated \n
+    them user can send email or name or last name to set in profile
+    """
     profile = db.query(Profile).filter(Profile.phone_number == phone).first()
     if profile is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Profile not found')
@@ -31,4 +42,4 @@ def update_profile(data: schema.Profile | None = None, phone: str = Depends(logi
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invalid email address')
     db.commit()
     db.refresh(profile)
-    return "Change profile successfully"
+    return profile
