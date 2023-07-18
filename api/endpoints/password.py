@@ -12,6 +12,9 @@ router = APIRouter(prefix="/password")
 
 @router.post('/set/')
 def set_password(data: schema.UserCreate, auth: str = Depends(login_required), db: Session = Depends(get_db)):
+    """
+    get password and hashing them and set in database
+    """
     user = db.query(User).filter(User.phone_number == auth).first()
     hash_password = get_password_hash(data.password)
     user.password = hash_password
@@ -21,7 +24,13 @@ def set_password(data: schema.UserCreate, auth: str = Depends(login_required), d
 
 
 @router.put('/update/')
-def update_password(data: schema.PasswordUpdate, auth: str = Depends(login_required), db: Session = Depends(get_db)):
+def update_password(data: schema.PasswordUpdate, auth: str = Depends(login_required),
+                    db: Session = Depends(get_db)):
+    """
+    get new password and old password \n
+    check old password in database is current \n
+    and replace with old password
+    """
     user = db.query(User).filter(User.phone_number == auth).first()
     old_password = data.password
     verifyPassword = verify_password(old_password, user.password)
@@ -31,6 +40,3 @@ def update_password(data: schema.PasswordUpdate, auth: str = Depends(login_requi
         db.refresh(user)
         return 'Password update'
     raise HTTPException(detail='Password be most mach', status_code=status.HTTP_409_CONFLICT)
-
-
-
