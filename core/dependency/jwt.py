@@ -26,7 +26,12 @@ def login_required(Auth: AuthJWT = Depends()):
         return subject
     except JWTDecodeError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Json Web Token Decode Error ')
-    except  MissingTokenError:
+    except MissingTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Json Web Token Missing Token')
     except AuthJWTException:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Json Web Token invalid')
+
+
+# def jwt(subject, auth: AuthJWT = Depends()):
+#     refresh = auth.create_refresh_token(subject)
+#     access = auth.create_access_token(subject)

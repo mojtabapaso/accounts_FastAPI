@@ -1,6 +1,8 @@
-from ..schemas.schema import UserBase, LoginPassword
+from fastapi_jwt_auth import AuthJWT
+
+from ..schemas.schema import UserBase, LoginPassword, UserData
 import re
-from models.models import OtpCode
+from models.models import OtpCode, Profile
 from models.dependencies import get_db
 from models.models import User
 from fastapi import Depends, HTTPException, status
@@ -45,3 +47,40 @@ def login_password(data: LoginPassword, db: Session = Depends(get_db)):
     if verifyPassword is False:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="password invalid")
     return phone_number
+
+
+def user_exist(data: UserBase, db: Session = Depends(get_db)):
+    user_exist = db.query(User).filter(User.phone_number == data.phone_number).first()
+    if user_exist is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This phone number not found")
+
+
+def avoid_creating_additional_code(data: UserBase, db: Session = Depends(get_db)):
+    last_otp_time = db.query(OtpCode).filter(OtpCode.phone_number == data.phone_number).order_by(
+        OtpCode.id.desc()).first()
+
+    if last_otp_time and (last_otp_time.time + timedelta(minutes=2)) > datetime.now():
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                            detail='Please wait for 2 minutes before requesting a new OTP')
+
+
+def profile_is_not_none(Auth: AuthJWT = Depends(), db: Session = Depends(get_db)):
+    sub = Auth.get_jwt_subject()
+    profile = db.query(Profile).filter(Profile.phone_number == sub).first()
+    if profile is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This profile not found')
+
+
+def show_profile(Auth: AuthJWT = Depends(), db: Session = Depends(get_db)):
+    sub = Auth.get_jwt_subject()
+    profile = db.query(Profile).filter(Profile.phone_number == sub).first()
+    return profile
+
+
+def code_is_expired(data: UserData, db: Session = Depends(get_db)):
+    code_valid = db.query(OtpCode).filter(OtpCode.code == data.code).first()
+    if code_valid and (code_valid.time + timedelta(minutes=2)) < datetime.now():
+        code_valid.expired = False
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Code has expired or invalid')
+
