@@ -1,6 +1,8 @@
 from sqlalchemy.orm import relationship
 from db.database import Base
 from sqlalchemy import Column, Integer, String, ForeignKey
+
+
 class Profile(Base):
     __tablename__ = 'profile'
     id = Column(Integer, primary_key=True, index=True)
