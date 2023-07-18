@@ -12,13 +12,8 @@ from models.otpcode import OtpCode
 router = APIRouter(prefix="/login")
 
 
-@router.get("/a/")
-def rt():
-    return "ok"
-
-
 @router.post('/phone/', dependencies=[Depends(user_exist), Depends(avoid_creating_additional_code)])
-def validate_phone_number_send_code(data: schema.OtpCode, db: Session = Depends(get_db)):
+def validate_phone_number_send_code(data: schema.UserBase, db: Session = Depends(get_db)) -> str:
     """
     Validate the  **phone number** \n
     validate user exist in database \n
@@ -31,23 +26,25 @@ def validate_phone_number_send_code(data: schema.OtpCode, db: Session = Depends(
     return "send opt code"
 
 
-@router.post('/code/', dependencies=[Depends(user_exist), Depends(code_is_expired)], response_model=schema.Token)
-def login_with_phone_number_and_code(data: schema.UserData, Authorize: AuthJWT = Depends()):
+@router.post('/code/', dependencies=[Depends(user_exist), Depends(code_is_expired)])
+def login_with_phone_number_and_code(data: schema.UserData, Authorize: AuthJWT = Depends()) -> schema.TokenJTW:
     """
     validate code has not expired \n
     validate user exist in database \n
-    if otp code is not expired login user
+    if otp code is not expired login user \n
+    send *JWT* **access token** , **refresh token**
     """
     access_token = Authorize.create_access_token(subject=data.phone_number)
     refresh_token = Authorize.create_refresh_token(subject=data.phone_number)
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 
-@router.post("/password/", dependencies=[Depends(validate_phone_number)], response_model=schema.Token)
-def login_with_password(data: str = Depends(login_password), Authorize: AuthJWT = Depends()):
+@router.post("/password/", dependencies=[Depends(validate_phone_number)])
+def login_with_password(data: str = Depends(login_password), Authorize: AuthJWT = Depends()) -> schema.TokenJTW:
     """
     validate user exist in database \n
-    if password is current login user
+    if password is current login user \n
+    send *JWT* **access token** , **refresh token**
     """
     refresh_token = Authorize.create_refresh_token(subject=data)
     access_token = Authorize.create_access_token(subject=data)

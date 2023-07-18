@@ -11,7 +11,7 @@ router = APIRouter(prefix="/password")
 
 
 @router.post('/set/')
-def set_password(data: schema.UserCreate, auth: str = Depends(login_required), db: Session = Depends(get_db)):
+def set_password(data: schema.Password, auth: str = Depends(login_required), db: Session = Depends(get_db)):
     """
     get password and hashing them and set in database
     """

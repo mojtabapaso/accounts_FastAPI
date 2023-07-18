@@ -1,45 +1,21 @@
 from pydantic import BaseModel, Field
-from typing import Union
-
-
-class OtpCode(BaseModel):
-    phone_number: str
+from typing import Union, Dict
 
 
 class UserBase(BaseModel):
     phone_number: str = Field(example="09331264063")
 
 
-class UserCreate(BaseModel):
-    password: str
-
-
-# class User(UserBase):
-#     id: int
-#     is_active: bool
-#
-#     class Config:
-#         orm_mode = True
-
-
 class UserData(UserBase):
     code: str = Field(example="123456")
 
 
-class Token(BaseModel):
-    token: dict
-
-#
-# class UserInDB(User):
-#     hashed_password: str
-
-
 class Password(BaseModel):
-    password: str
+    password: str = Field(example="password")
 
 
 class PasswordUpdate(Password):
-    new_password: str
+    new_password: str = Field(example="new password")
 
 
 class Profile(BaseModel):
@@ -48,5 +24,18 @@ class Profile(BaseModel):
     last_name: Union[str, None] = Field(example="last name")
 
 
-class LoginPassword(Password, UserBase):
-    pass
+class LoginPassword(BaseModel):
+    password: str = Field(example="password")
+    phone_number: str = Field(example="09331264063")
+
+
+class TokenJTW(BaseModel):
+    access_token: str = Field(example="Asd23CeDVfdd...")
+    refresh_token: str = Field(example="PoaCvrcs...")
+
+# class User(UserBase):
+#     id: int
+#     is_active: bool
+#
+#     class Config:
+#         orm_mode = True

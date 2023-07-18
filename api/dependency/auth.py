@@ -1,5 +1,5 @@
 from fastapi_jwt_auth import AuthJWT
-from schemas.schema import UserBase, LoginPassword, UserData
+from schemas.schema import UserBase, UserData, LoginPassword
 from models.otpcode import OtpCode
 from models.user import User
 from models.profile import Profile
