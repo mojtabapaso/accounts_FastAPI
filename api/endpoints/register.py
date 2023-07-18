@@ -19,9 +19,8 @@ router = APIRouter(prefix="/register")
              dependencies=[Depends(validate_phone_number),
                            Depends(validate_otp_request_rate),
                            Depends(validate_user),
-                           Depends(falsifier_activate_otp_code)],
-             status_code=status.HTTP_200_OK)
-def register_user_with_phone_number(user: schema.UserBase, db: Session = Depends(get_db), ):
+                           Depends(falsifier_activate_otp_code)])
+def register_user_with_phone_number(user: schema.UserBase, db: Session = Depends(get_db)):
     otpCode = OtpCode(code=random_otp_code(), phone_number=user.phone_number)
     db.add(otpCode)
     db.commit()

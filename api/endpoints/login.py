@@ -18,8 +18,7 @@ def rt():
     return "ok"
 
 
-@router.post('/phone/', dependencies=[Depends(user_exist), Depends(avoid_creating_additional_code)],
-             status_code=status.HTTP_200_OK)
+@router.post('/phone/', dependencies=[Depends(user_exist), Depends(avoid_creating_additional_code)])
 def login_token(data: schema.OtpCode, db: Session = Depends(get_db)):
     otpCode = OtpCode(code=random_otp_code(), phone_number=data.phone_number)
     db.add(otpCode)
@@ -28,15 +27,14 @@ def login_token(data: schema.OtpCode, db: Session = Depends(get_db)):
     return "send opt code"
 
 
-@router.post('/code/', dependencies=[Depends(user_exist), Depends(code_is_expired)],
-             status_code=status.HTTP_200_OK)
+@router.post('/code/', dependencies=[Depends(user_exist), Depends(code_is_expired)])
 def login_token(data: schema.UserData, Authorize: AuthJWT = Depends()):
     access_token = Authorize.create_access_token(subject=data.phone_number)
     refresh_token = Authorize.create_refresh_token(subject=data.phone_number)
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 
-@router.post("/password/", dependencies=[Depends(validate_phone_number)], status_code=status.HTTP_200_OK)
+@router.post("/password/", dependencies=[Depends(validate_phone_number)])
 def login_password(data: str = Depends(login_password), Authorize: AuthJWT = Depends()):
     refresh_token = Authorize.create_refresh_token(subject=data)
     access_token = Authorize.create_access_token(subject=data)
