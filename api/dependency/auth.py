@@ -1,16 +1,14 @@
 from fastapi_jwt_auth import AuthJWT
-
-from ..schemas.schema import UserBase, LoginPassword, UserData
-import re
-from models.models import OtpCode, Profile
-from models.dependencies import get_db
-from models.models import User
+from schemas.schema import UserBase, LoginPassword, UserData
+from models.otpcode import OtpCode
+from models.user import User
+from models.profile import Profile
+from db.dependencies import get_db
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-
-from ..security.hasher import verify_password
-
+from security.hasher import verify_password
+import re
 
 def validate_phone_number(user: UserBase):
     if not re.match("^09\d{9}$", user.phone_number):
@@ -83,4 +81,3 @@ def code_is_expired(data: UserData, db: Session = Depends(get_db)):
         code_valid.expired = False
         db.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Code has expired or invalid')
-
